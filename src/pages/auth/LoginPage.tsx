@@ -13,6 +13,7 @@ export const LoginPage = () => {
     login({ email });
     nav('/app');
   };
+  
   return (
     <div className="max-w-md mx-auto mt-10 p-8 bg-neutral-900 rounded-xl ring-1 ring-neutral-800">
       <h1 className="text-2xl font-bold mb-6">Entrar</h1>
