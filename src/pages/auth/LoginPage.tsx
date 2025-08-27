@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth';
 import { useState } from 'react';
-import { LoginUser, type LoginResponse } from '../api/user.services';
+import { LoginUser, type ErrorResponse, type LoginResponse } from '../api/user.services';
 import { useToast } from '../../store/toast';
 
 export const LoginPage = () => {
@@ -22,13 +22,15 @@ export const LoginPage = () => {
 
     setLoading(true);
     try {
-      const response: LoginResponse = await LoginUser(email, password);
+      const payload = { email, password };
+
+      const response: LoginResponse | ErrorResponse = await LoginUser(payload);
     
       if (response.error) {
         push({ type: 'error', message: 'Email ou senha inválidos. Verifique suas credenciais.' });
       } else {
         // Login com sucesso
-        login({ email, name: 'Usuário' }); // adapte conforme resposta do backend
+        login({ email, name: 'Usuário' });
         push({ type: 'success', message: 'Login realizado com sucesso!' });
         nav('/app');
       }

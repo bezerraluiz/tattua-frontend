@@ -1,8 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../../store/auth';
 import { useState, useEffect } from 'react';
 import { useProfile } from '../../store/profile';
 import { useToast } from '../../store/toast';
+import { RegisterUser, RegisterPayload, LoginResponse, type ErrorResponse, type RegisterResponse } from '../api/user.services';
 
 export const RegisterPage = () => {
   const { login } = useAuth();
@@ -75,27 +77,51 @@ export const RegisterPage = () => {
 
   const passwordsMatch = password && password === password2;
   const canSubmit = email && passwordsMatch && password.length >= 4 && cep.replace(/\D/g,'').length === 8 && street && number && city && uf && validTax();
-  const submit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) {
       setFormError('Preencha os campos obrigatórios corretamente.');
       return;
     }
     setFormError(null);
-    login({ name: name || 'Usuário', email });
-    // Preenche stores de perfil
-  updateUser({ studio_name: name || 'Meu Estúdio', email, tax_id: taxId });
-    updateAddress({
+    setLoading(true);
+    const payload: RegisterPayload = {
+      studio_name: name,
+      email,
+      tax_id: taxId,
+      password,
       country: 'Brasil',
       street,
       number,
       complement,
       city,
       state: uf,
-      zip_code: cep.replace(/\D/g,'')
-    });
-  push({ type: 'success', message: 'Conta criada.' });
-    nav('/app');
+      zip_code: cep.replace(/\D/g, '')
+    };
+    try {
+      const response: RegisterResponse | ErrorResponse = await RegisterUser(payload);
+      if (response.error) {
+        push({ type: 'error', message: 'Erro ao criar conta. Verifique os dados.' });
+      } else {
+        updateUser({ studio_name: name, email, tax_id: taxId });
+        updateAddress({
+          country: 'Brasil',
+          street,
+          number,
+          complement,
+          city,
+          state: uf,
+          zip_code: cep.replace(/\D/g,'')
+        });
+        push({ type: 'success', message: 'Conta criada com sucesso! Faça login para continuar.' });
+        nav('/login');
+      }
+    } catch (err) {
+      push({ type: 'error', message: 'Erro de conexão. Tente novamente.' });
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="max-w-md mx-auto mt-10 p-8 bg-neutral-900 rounded-xl ring-1 ring-neutral-800">
@@ -163,7 +189,19 @@ export const RegisterPage = () => {
           </div>
         </div>
         {formError && <p className="text-xs text-red-500">{formError}</p>}
-        <button disabled={!canSubmit} className="w-full py-2 rounded-md bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium">Cadastrar</button>
+        <button type="submit" disabled={!canSubmit || loading} className="w-full py-2 rounded-md bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium flex items-center justify-center">
+          {loading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Cadastrando...
+            </>
+          ) : (
+            'Cadastrar'
+          )}
+        </button>
       </form>
       <p className="text-xs text-neutral-500 mt-6">Já tem conta? <Link to="/login" className="text-brand-400 hover:text-brand-300">Entrar</Link></p>
     </div>
