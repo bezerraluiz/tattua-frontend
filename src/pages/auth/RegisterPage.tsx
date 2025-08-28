@@ -4,7 +4,9 @@ import { useAuth } from '../../store/auth';
 import { useState, useEffect } from 'react';
 import { useProfile } from '../../store/profile';
 import { useToast } from '../../store/toast';
+
 import { RegisterUser, RegisterPayload, LoginResponse, type ErrorResponse, type RegisterResponse } from '../api/user.services';
+import { maskCEP, maskCPF, maskCNPJ, maskTaxId, isValidCPF, isValidCNPJ, validTax } from '../../utils/validation';
 
 export const RegisterPage = () => {
   const { login } = useAuth();
@@ -49,34 +51,8 @@ export const RegisterPage = () => {
     }
   }, [cep]);
 
-  // Máscaras
-  const maskCEP = (v: string) => v.replace(/\D/g,'').slice(0,8).replace(/(\d{5})(\d)/,'$1-$2');
-  const maskCPF = (v: string) => v.replace(/\D/g,'').slice(0,11).replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
-  const maskCNPJ = (v: string) => v.replace(/\D/g,'').slice(0,14).replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1/$2').replace(/(\d{4})(\d{1,2})$/,'$1-$2');
-  const maskTaxId = (v: string) => v.replace(/\D/g,'').length <= 11 ? maskCPF(v) : maskCNPJ(v);
-
-  const isValidCPF = (cpf: string) => {
-    cpf = cpf.replace(/\D/g,'');
-    if (cpf.length !== 11 || /(\d)\1{10}/.test(cpf)) return false;
-    let soma = 0; for (let i=0;i<9;i++) soma += parseInt(cpf[i])*(10-i); let d1 = (soma*10)%11; if(d1===10) d1=0; if(d1!==parseInt(cpf[9])) return false;
-    soma = 0; for (let i=0;i<10;i++) soma += parseInt(cpf[i])*(11-i); let d2 = (soma*10)%11; if(d2===10) d2=0; return d2===parseInt(cpf[10]);
-  };
-  const isValidCNPJ = (cnpj: string) => {
-    cnpj = cnpj.replace(/\D/g,'');
-    if (cnpj.length !== 14) return false;
-    if (/^(\d)\1+$/.test(cnpj)) return false;
-    const calc = (len: number) => {
-      let nums = cnpj.substring(0,len);
-      let sum = 0; let pos = len - 7;
-      for (let i=len; i>=1; i--) { sum += parseInt(nums[len - i]) * pos--; if (pos < 2) pos = 9; }
-      let res = sum % 11; return res < 2 ? 0 : 11 - res;
-    };
-    const d1 = calc(12); const d2 = calc(13); return d1 === parseInt(cnpj[12]) && d2 === parseInt(cnpj[13]);
-  };
-  const validTax = () => { const digits = taxId.replace(/\D/g,''); return digits.length<=11 ? isValidCPF(taxId) : isValidCNPJ(taxId); };
-
   const passwordsMatch = password && password === password2;
-  const canSubmit = email && passwordsMatch && password.length >= 4 && cep.replace(/\D/g,'').length === 8 && street && number && city && uf && validTax();
+  const canSubmit = email && passwordsMatch && password.length >= 4 && cep.replace(/\D/g,'').length === 8 && street && number && city && uf && validTax(taxId);
   const [loading, setLoading] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,8 +90,8 @@ export const RegisterPage = () => {
           state: uf,
           zip_code: cep.replace(/\D/g,'')
         });
-        push({ type: 'success', message: 'Conta criada com sucesso! Faça login para continuar.' });
-        nav('/login');
+  push({ type: 'success', message: 'Conta criada! Verifique seu e-mail para ativar.' });
+  nav('/aguarde-verificacao', { state: { email } });
       }
     } catch (err) {
       push({ type: 'error', message: 'Erro de conexão. Tente novamente.' });
@@ -133,8 +109,8 @@ export const RegisterPage = () => {
         </div>
         <div>
           <label className="block text-sm mb-1">CPF/CNPJ</label>
-          <input value={taxId} onChange={e => setTaxId(maskTaxId(e.target.value))} placeholder="CPF ou CNPJ" required className={`w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${taxId && !validTax() ? 'focus:ring-red-600 ring-1 ring-red-600' : 'focus:ring-brand-600'}`} />
-          {taxId && !validTax() && <p className="text-xs text-red-500 mt-1">Documento inválido.</p>}
+          <input value={taxId} onChange={e => setTaxId(maskTaxId(e.target.value))} placeholder="CPF ou CNPJ" required className={`w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${taxId && !validTax(taxId) ? 'focus:ring-red-600 ring-1 ring-red-600' : 'focus:ring-brand-600'}`} />
+          {taxId && !validTax(taxId) && <p className="text-xs text-red-500 mt-1">Documento inválido.</p>}
         </div>
         <div>
           <label className="block text-sm mb-1">Email</label>

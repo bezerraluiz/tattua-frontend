@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
+import { AwaitEmailVerification } from './pages/auth/AwaitEmailVerification';
 import { DashboardPage } from './pages/app/DashboardPage';
 import { QuotesPage } from './pages/app/QuotesPage';
 import { QuoteBuilderPage } from './pages/app/QuoteBuilderPage';
@@ -18,7 +19,8 @@ export default function App() {
       <Route element={<Layout />}>        
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+  <Route path="/register" element={<RegisterPage />} />
+  <Route path="/aguarde-verificacao" element={<AwaitEmailVerification />} />
         <Route element={<ProtectedRoute />}>          
           <Route path="/app" element={<DashboardPage />} />
           <Route path="/app/orcamentos" element={<QuotesPage />} />
