@@ -12,6 +12,7 @@ import { BillingPage } from './pages/app/BillingPage';
 import { SettingsPage } from './pages/app/SettingsPage';
 import { ProfilePage } from './pages/app/ProfilePage';
 import { PaymentPage } from './pages/app/PaymentPage';
+import { ErrorPage } from './pages/ErrorPage';
 
 export default function App() {
   return (
@@ -21,7 +22,8 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
   <Route path="/register" element={<RegisterPage />} />
   <Route path="/aguarde-verificacao" element={<AwaitEmailVerification />} />
-        <Route element={<ProtectedRoute />}>          
+  <Route path="/erro" element={<ErrorPage />} />
+  <Route element={<ProtectedRoute />}>          
           <Route path="/app" element={<DashboardPage />} />
           <Route path="/app/orcamentos" element={<QuotesPage />} />
           <Route path="/app/orcamentos/novo" element={<QuoteBuilderPage />} />
