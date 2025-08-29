@@ -91,6 +91,9 @@ export const LoginPage = () => {
             required
             className="w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
           />
+          <div className="text-right mt-1">
+            <Link to="/esqueci-senha" className="text-xs text-brand-400 hover:text-brand-300">Esqueceu a senha?</Link>
+          </div>
         </div>
         <button
           type="submit"

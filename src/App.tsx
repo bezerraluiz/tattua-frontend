@@ -13,6 +13,8 @@ import { SettingsPage } from './pages/app/SettingsPage';
 import { ProfilePage } from './pages/app/ProfilePage';
 import { PaymentPage } from './pages/app/PaymentPage';
 import { ErrorPage } from './pages/ErrorPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
   <Route path="/register" element={<RegisterPage />} />
   <Route path="/aguarde-verificacao" element={<AwaitEmailVerification />} />
   <Route path="/erro" element={<ErrorPage />} />
+  <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
+  <Route path="/resetar-senha" element={<ResetPasswordPage />} />
   <Route element={<ProtectedRoute />}>          
           <Route path="/app" element={<DashboardPage />} />
           <Route path="/app/orcamentos" element={<QuotesPage />} />

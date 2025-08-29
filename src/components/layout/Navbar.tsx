@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, User, LayoutDashboard, Settings, FileText, CreditCard, LogOut } from 'lucide-react';
 import { useAuth } from '../../store/auth';
 
@@ -7,6 +7,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) => `px-3 py-2 rounded
 export const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const hideAuthButtons = ['/esqueci-senha', '/resetar-senha'].includes(location.pathname);
   const handleLogout = () => { logout(); navigate('/'); };
   return (
     <nav className="w-full border-b border-neutral-800 bg-neutral-900/80 backdrop-blur sticky top-0 z-50">
@@ -24,7 +26,7 @@ export const Navbar = () => {
           </div>
         )}
         <div className="flex items-center gap-3">
-          {!user && (
+          {!user && !hideAuthButtons && (
             <>
               <Link to="/login" className="inline-flex items-center gap-1 text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 px-3 py-2 rounded-md"><LogIn className="w-4 h-4"/>Login</Link>
               <Link to="/register" className="hidden md:inline-flex items-center gap-1 text-sm font-medium text-brand-300 hover:text-white px-3 py-2">Criar conta</Link>
