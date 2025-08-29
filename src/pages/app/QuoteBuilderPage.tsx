@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 export const QuoteBuilderPage = () => {
   const { fields, addQuote } = useQuoteStore();
   const [client, setClient] = useState('');
+  const [professionalName, setProfessionalName] = useState('');
   const [selections, setSelections] = useState<Record<string, string | undefined>>({});
   const [texts, setTexts] = useState<Record<string, string>>({});
   const [numbers, setNumbers] = useState<Record<string, number>>({});
@@ -43,6 +44,7 @@ export const QuoteBuilderPage = () => {
   const save = (download?: boolean) => {
     const newQ = addQuote({
       client,
+      professional_name: professionalName,
       items: fields.map(f => ({
         fieldId: f.id,
         optionId: f.type === 'select' ? selections[f.id] : undefined,
@@ -108,6 +110,10 @@ export const QuoteBuilderPage = () => {
             <div>
               <label className="block text-sm mb-1">Cliente</label>
               <input value={client} onChange={e => setClient(e.target.value)} className="w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600" />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">Profissional responsável</label>
+              <input value={professionalName} onChange={e => setProfessionalName(e.target.value)} className="w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600" />
             </div>
             {fields.map(f => (
               <div key={f.id} className="space-y-1">

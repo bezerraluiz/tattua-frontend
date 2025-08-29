@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { resetPassword } from '../../supabase/api/auth';
 import { useToast } from '../../store/toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,7 +12,7 @@ export const ResetPasswordPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+  const { error } = await resetPassword(password);
     if (error) {
       push({ type: 'error', message: 'Erro ao redefinir senha.' });
     } else {

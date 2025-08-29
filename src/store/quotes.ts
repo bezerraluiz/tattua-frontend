@@ -9,7 +9,7 @@ export interface QuoteFieldNumber extends QuoteFieldBase { type: 'number'; unit:
 export type QuoteField = QuoteFieldSelect | QuoteFieldText | QuoteFieldNumber;
 
 export interface QuoteItem { fieldId: string; optionId?: string; text?: string; amount: number; }
-export interface Quote { id: string; client: string; items: QuoteItem[]; total: number; createdAt: string; }
+export interface Quote { id: string; client: string; professional_name: string; items: QuoteItem[]; total: number; createdAt: string; }
 
 type NewFieldInput =
   | { type: 'select'; label: string; options: QuoteFieldSelectOption[] }
@@ -23,7 +23,7 @@ interface QuoteState {
   setSearch: (s: string) => void;
   addField: (data: NewFieldInput) => void;
   updateField: (id: string, patch: Partial<QuoteField>) => void;
-  addQuote: (data: { client: string; items: Omit<QuoteItem, 'amount'>[]; total: number }) => Quote;
+  addQuote: (data: { client: string; professional_name: string; items: Omit<QuoteItem, 'amount'>[]; total: number }) => Quote;
 }
 
 export const useQuoteStore = create<QuoteState>((set, get) => ({
@@ -76,7 +76,14 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
   }),
   updateField: (id, patch) => set(state => ({ fields: state.fields.map(f => f.id === id ? { ...f, ...patch } as QuoteField : f) })),
   addQuote: (data) => {
-    const q: Quote = { id: nanoid(), client: data.client, items: [], total: data.total, createdAt: new Date().toISOString() };
+    const q: Quote = {
+      id: nanoid(),
+      client: data.client,
+      professional_name: data.professional_name,
+      items: [],
+      total: data.total,
+      createdAt: new Date().toISOString()
+    };
     set(state => ({ quotes: [q, ...state.quotes] }));
     return q;
   }

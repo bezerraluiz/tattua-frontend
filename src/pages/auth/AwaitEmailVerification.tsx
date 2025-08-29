@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useToast } from '../../store/toast';
-import { supabase } from '../../utils/supabaseClient';
+import { resendVerificationEmail } from '../../supabase/api/auth';
 
 export const AwaitEmailVerification = () => {
   const location = useLocation();
@@ -19,7 +19,7 @@ export const AwaitEmailVerification = () => {
 
   const handleResend = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.resend({ type: 'signup', email, options: {emailRedirectTo: 'http://localhost:5173/login'} });
+  const { error } = await resendVerificationEmail(email);
     if (error) {
       push({ type: 'error', message: 'Erro ao reenviar e-mail.' });
     } else {

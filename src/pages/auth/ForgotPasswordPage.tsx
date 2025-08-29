@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { forgotPassword } from '../../supabase/api/auth';
 import { useToast } from '../../store/toast';
 
 export const ForgotPasswordPage = () => {
@@ -10,9 +10,7 @@ export const ForgotPasswordPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/resetar-senha',
-    });
+  const { error } = await forgotPassword(email);
     if (error) {
       push({ type: 'error', message: 'Erro ao enviar e-mail de recuperação.' });
     } else {
