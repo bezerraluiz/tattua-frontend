@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useProfile } from '../../store/profile';
 import { useToast } from '../../store/toast';
 
-import { RegisterUser, RegisterPayload, LoginResponse, type ErrorResponse, type RegisterResponse } from '../api/user.services';
+import { RegisterUser, RegisterPayload, LoginResponse, type ErrorResponse, type RegisterResponse } from '../../api/user.services';
 import { maskCEP, maskCPF, maskCNPJ, maskTaxId, isValidCPF, isValidCNPJ, validTax } from '../../utils/validation';
 
 export const RegisterPage = () => {

@@ -5,7 +5,7 @@ import {
   LoginUser,
   type ErrorResponse,
   type LoginResponse,
-} from "../api/user.services";
+} from "../../api/user.services";
 import { useToast } from "../../store/toast";
 
 export const LoginPage = () => {
