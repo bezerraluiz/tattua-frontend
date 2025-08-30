@@ -3,8 +3,11 @@ import { useEffect, useState } from 'react';
 import { GetQuotesByUserUid } from '../../api/quote.services';
 import { getCurrentUserId } from '../../supabase/api/user';
 import { useToast } from '../../store/toast';
+import { generateQuotePDF } from '../../utils/generateQuotePDF';
+import { useQuoteStore } from '../../store/quotes';
 
 export const QuotesPage = () => {
+  const { fields: fieldDefs } = useQuoteStore();
   const [quotes, setQuotes] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,44 @@ export const QuotesPage = () => {
   }, [push]);
 
   const filtered = quotes.filter(q => q.client_name?.toLowerCase().includes(search.toLowerCase()));
+
+  // Monta campos para PDF (padrão + customizados)
+  function buildFieldsForPDF(quote: any) {
+    function getSelectValueAndLabel(fieldId: string, value: string) {
+      const def = fieldDefs.find(f => f.id === fieldId && f.type === 'select');
+      if (!def || !('options' in def)) return { value, label: value };
+      const opt = def.options.find(o => o.id === value);
+      if (!opt) return { value, label: value };
+      if (typeof opt.value === 'number' && !opt.percent) {
+        return { value: `R$${(opt.value/100).toFixed(2)}`, label: opt.label };
+      }
+      return { value: opt.label, label: opt.label };
+    }
+    const fields = [
+      { label: 'Profissional', value: quote.professional_name },
+      { label: 'Cliente', value: quote.client_name },
+      { label: 'Data da criação', value: quote.created_at ? new Date(quote.created_at).toLocaleDateString('pt-BR') : '-' },
+      { label: 'Valor', value: `R$${(quote.total/100).toFixed(2)}` },
+      { ...getSelectValueAndLabel('size', quote.tattoo_size), label: 'Tamanho', fieldId: 'size' },
+      { ...getSelectValueAndLabel('difficulty', quote.difficulty), label: 'Dificuldade', fieldId: 'difficulty' },
+      { ...getSelectValueAndLabel('body_region', quote.body_region), label: 'Região do corpo', fieldId: 'body_region' },
+      { ...getSelectValueAndLabel('colors', quote.colors_quantity), label: 'Quantidade de cores', fieldId: 'colors' },
+      { ...getSelectValueAndLabel('needle_fill', quote.needle_fill), label: 'Agulha/preenchimento', fieldId: 'needle_fill' },
+      { label: 'Horas estimadas', value: quote.estimated_hours },
+      { label: 'Descrição', value: quote.description },
+    ];
+    if (quote.custom_fields && typeof quote.custom_fields === 'object') {
+      Object.entries(quote.custom_fields).forEach(([key, value]) => {
+        fields.push({ label: key, value: String(value) });
+      });
+    }
+    return fields;
+  }
+
+  function handleDownloadPDF(quote: any) {
+    const fields = buildFieldsForPDF(quote);
+    generateQuotePDF(quote, fields);
+  }
 
   return (
     <div className="space-y-6">
@@ -62,10 +103,14 @@ export const QuotesPage = () => {
                   <td className="py-2 pr-4">R${(q.total/100).toFixed(2)}</td>
                   <td className="py-2 pr-4">{q.created_at ? new Date(q.created_at).toLocaleDateString('pt-BR') : '-'}</td>
                   <td className="py-2 pr-4 flex gap-2">
-                    {q.pdf_url && (
-                      <a href={q.pdf_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-xs text-white">Baixar PDF</a>
-                    )}
                     <Link to={`/app/orcamentos/${q.id}`} className="px-3 py-1 rounded bg-brand-600 hover:bg-brand-500 text-xs text-white">Visualizar</Link>
+                    <button
+                      onClick={() => handleDownloadPDF(q)}
+                      className="px-3 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-xs text-white border border-brand-600 flex items-center gap-1"
+                      title="Baixar PDF"
+                    >
+                      <span>PDF</span>
+                    </button>
                   </td>
                 </tr>
               ))}
