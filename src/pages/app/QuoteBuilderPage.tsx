@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useQuoteStore } from '../../store/quotes';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUserId } from '../../supabase/api/user';
+import { CreateQuote } from '../../api/quote.services';
 
 export const QuoteBuilderPage = () => {
   const { fields, addQuote } = useQuoteStore();
@@ -41,8 +43,37 @@ export const QuoteBuilderPage = () => {
   };
   const total = calculateTotal();
 
-  const save = (download?: boolean) => {
-    const newQ = addQuote({
+  const save = async (download?: boolean) => {
+    const user_uid = await getCurrentUserId();
+    if (!user_uid) {
+      alert('Usuário não autenticado.');
+      return;
+    }
+
+    // Monta o payload para o backend
+    const payload = {
+      client_name: client,
+      professional_name: professionalName,
+      tattoo_size: selections['tamanho'] || '',
+      difficulty: selections['dificuldade'] || '',
+      body_region: selections['regiao'] || '',
+      colors_quantity: selections['cores'] || '',
+      needle_fill: selections['agulhas'] || '',
+      estimated_hours: numbers['horas'] || 0,
+      description: texts['descricao'] || '',
+      total,
+      custom_fields: {}, // Adapte se quiser salvar extras
+      user_uid: user_uid,
+    };
+
+    const result = await CreateQuote(payload);
+    if (result.error) {
+      push({ type: 'error', message: 'Erro ao criar orçamento.' });
+      return;
+    }
+
+    // Salva localmente (opcional)
+    addQuote({
       client,
       professional_name: professionalName,
       items: fields.map(f => ({
@@ -53,6 +84,7 @@ export const QuoteBuilderPage = () => {
       })),
       total,
     });
+
     if (download) {
       const doc = new jsPDF();
       const date = new Date();
@@ -78,12 +110,12 @@ export const QuoteBuilderPage = () => {
         if (f.type === 'select') {
           const opt = f.options?.find(o => o.id === selections[f.id]);
           if (!opt) continue;
-          desc = opt.label; val = opt.percent ? 0 : opt.value; // percent não mostra valor direto
+          desc = opt.label; val = opt.percent ? 0 : opt.value;
         } else if (f.type === 'text') {
           desc = texts[f.id] || '-'; val = f.basePrice || 0;
         } else if (f.type === 'number') {
           const num = numbers[f.id] || 0;
-            desc = `${num} ${f.unit}`; val = num * f.multiplier;
+          desc = `${num} ${f.unit}`; val = num * f.multiplier;
         }
         doc.text(f.label, 20, y);
         doc.text(desc, 80, y, { align: 'center' });
@@ -143,7 +175,6 @@ export const QuoteBuilderPage = () => {
             <div className="flex gap-3">
               <button type="button" onClick={() => navigate('/app/orcamentos')} className="px-4 py-2 rounded-md bg-neutral-800 ring-1 ring-neutral-700 hover:bg-neutral-700 text-sm font-medium">Cancelar</button>
               <button disabled={!client} onClick={() => save()} className="flex-1 py-2 rounded-md bg-brand-600 disabled:opacity-40 hover:bg-brand-500 text-white text-sm font-medium">Salvar</button>
-              <button disabled={!client} onClick={() => save(true)} className="flex-1 py-2 rounded-md bg-neutral-800 ring-1 ring-neutral-700 hover:bg-neutral-700 text-sm font-medium">PDF</button>
             </div>
           </div>
         </div>
@@ -151,3 +182,7 @@ export const QuoteBuilderPage = () => {
     </div>
   );
 };
+function push(arg0: { type: string; message: string; }) {
+  throw new Error('Function not implemented.');
+}
+

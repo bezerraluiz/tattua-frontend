@@ -10,7 +10,7 @@ export interface QuotePayload {
   description?: string;
   total: number;
   custom_fields?: Record<string, any>;
-  user_id: number;
+  user_uid: string;
 }
 
 export interface QuoteResponse {
