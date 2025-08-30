@@ -1,3 +1,4 @@
+import { generateQuotePDF } from "../../utils/generateQuotePDF";
 import { useQuoteStore } from "../../store/quotes";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -9,6 +10,11 @@ import { useToast } from "../../store/toast";
 
 
 export default function QuoteDetailsPage() {
+  // Função para gerar PDF
+  const handleDownloadPDF = () => {
+    if (!quote) return;
+    generateQuotePDF(quote, fields);
+  };
   const { id } = useParams();
   const navigate = useNavigate();
   const [quote, setQuote] = useState<any>(null);
@@ -51,24 +57,30 @@ export default function QuoteDetailsPage() {
   if (!quote) return null;
 
   // Monta todos os campos preenchidos, incluindo padrão e personalizados
-  // Função para buscar o label do campo select
-  function getSelectLabel(fieldId: string, value: string) {
+  // Função para buscar o valor numérico e label do campo select
+  function getSelectValueAndLabel(fieldId: string, value: string) {
     const def = fieldDefs.find(f => f.id === fieldId && f.type === 'select');
-    if (!def || !('options' in def)) return value;
+    if (!def || !('options' in def)) return { value, label: value };
     const opt = def.options.find(o => o.id === value);
-    return opt ? opt.label : value;
+    if (!opt) return { value, label: value };
+    // Exibe valor monetário se existir
+    if (typeof opt.value === 'number' && !opt.percent) {
+      return { value: `R$${(opt.value/100).toFixed(2)}`, label: opt.label };
+    }
+    // Exibe label se for percent
+    return { value: opt.label, label: opt.label };
   }
 
-  const fields: { label: string; value: any }[] = [
+  const fields: { label: string; value: any; rawValue?: string; fieldId?: string }[] = [
     { label: 'Profissional', value: quote.professional_name },
     { label: 'Cliente', value: quote.client_name },
     { label: 'Data da criação', value: quote.created_at ? new Date(quote.created_at).toLocaleDateString('pt-BR') : '-' },
     { label: 'Valor', value: `R$${(quote.total/100).toFixed(2)}` },
-    { label: 'Tamanho', value: getSelectLabel('tamanho', quote.tattoo_size) },
-    { label: 'Dificuldade', value: getSelectLabel('dificuldade', quote.difficulty) },
-    { label: 'Região do corpo', value: getSelectLabel('regiao', quote.body_region) },
-    { label: 'Quantidade de cores', value: getSelectLabel('cores', quote.colors_quantity) },
-    { label: 'Agulha/preenchimento', value: getSelectLabel('agulhas', quote.needle_fill) },
+    (() => { const r = getSelectValueAndLabel('size', quote.tattoo_size); return { label: 'Tamanho', value: r.value, rawValue: r.label, fieldId: 'size' }; })(),
+    (() => { const r = getSelectValueAndLabel('difficulty', quote.difficulty); return { label: 'Dificuldade', value: r.value, rawValue: r.label, fieldId: 'difficulty' }; })(),
+    (() => { const r = getSelectValueAndLabel('body_region', quote.body_region); return { label: 'Região do corpo', value: r.value, rawValue: r.label, fieldId: 'body_region' }; })(),
+    (() => { const r = getSelectValueAndLabel('colors', quote.colors_quantity); return { label: 'Quantidade de cores', value: r.value, rawValue: r.label, fieldId: 'colors' }; })(),
+    (() => { const r = getSelectValueAndLabel('needle_fill', quote.needle_fill); return { label: 'Agulha/preenchimento', value: r.value, rawValue: r.label, fieldId: 'needle_fill' }; })(),
     { label: 'Horas estimadas', value: quote.estimated_hours},
     { label: 'Descrição', value: quote.description },
   ];
@@ -79,21 +91,32 @@ export default function QuoteDetailsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 text-white">
-      <h1 className="text-2xl font-bold mb-6">Detalhes do Orçamento</h1>
-      <div className="space-y-3 mb-6">
-        {fields.filter(f => f.value && f.value !== 'undefined' && f.value !== '').map(f => (
-          <div className="mb-1" key={f.label}>
-            <span className="font-semibold">{f.label}:</span> {f.value}
+    <div className="max-w-xl mx-auto mt-10 bg-neutral-950 rounded-xl shadow-lg p-6 text-white border border-neutral-800">
+      <h1 className="text-3xl font-bold mb-2 text-brand-500 text-center">Detalhes do Orçamento</h1>
+      <div className="flex flex-col gap-2 mt-6 mb-4">
+        {fields.filter(f => f.value && f.value !== 'undefined' && f.value !== '').map((f, i) => (
+          <div key={f.label} className="flex items-center justify-between px-2 py-1 rounded hover:bg-neutral-900 transition">
+            <span className={
+              `font-semibold ${i < 2 ? 'text-brand-400' : 'text-neutral-300'} ${f.label === 'Valor' ? 'text-lg text-green-400' : ''}`
+            }>{f.label}:</span>
+            <span className={f.label === 'Valor' ? 'font-bold text-green-400 text-lg' : 'text-neutral-200'}>{f.value}</span>
           </div>
         ))}
       </div>
-      {quote.pdf_url && (
-        <div className="mb-4">
-          <a href={quote.pdf_url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded bg-brand-600 hover:bg-brand-500 text-white">Baixar PDF</a>
-        </div>
-      )}
-      <button onClick={() => navigate(-1)} className="mt-4 px-4 py-2 rounded bg-neutral-800 hover:bg-neutral-700">Voltar</button>
+      <div className="flex gap-3 justify-center mb-4">
+        <button
+          onClick={handleDownloadPDF}
+          className="px-5 py-2 rounded bg-brand-600 hover:bg-brand-500 text-white font-semibold shadow"
+        >
+          Baixar PDF
+        </button>
+        {quote.pdf_url && (
+          <a href={quote.pdf_url} target="_blank" rel="noopener noreferrer" className="px-5 py-2 rounded bg-neutral-700 hover:bg-neutral-600 text-white font-semibold shadow">PDF Salvo</a>
+        )}
+      </div>
+      <div className="flex justify-center">
+        <button onClick={() => navigate(-1)} className="px-5 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-white font-semibold">Voltar</button>
+      </div>
     </div>
   );
 }

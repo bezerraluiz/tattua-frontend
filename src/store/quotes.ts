@@ -28,38 +28,38 @@ interface QuoteState {
 
 export const useQuoteStore = create<QuoteState>((set, get) => ({
   fields: [
-    { id: 'tamanho', label: 'Tamanho da Tatuagem', type: 'select', options: [
-      { id: 'peq', label: 'Pequena (até 5 cm) - R$100', value: 10000 },
-      { id: 'med', label: 'Média (5 a 15 cm) - R$180', value: 18000 },
-      { id: 'grd', label: 'Grande (acima de 15 cm) - R$250', value: 25000 },
-    ] },
-    { id: 'dificuldade', label: 'Dificuldade', type: 'select', options: [
-      { id: 'simples', label: 'Simples (+R$20)', value: 2000 },
-      { id: 'media', label: 'Média (+R$70)', value: 7000 },
-      { id: 'alta', label: 'Alta (+R$150)', value: 15000 },
-    ] },
-    { id: 'regiao', label: 'Região do Corpo', type: 'select', options: [
-      { id: 'braco', label: 'Braço / Canela / Panturrilha (0%)', value: 0, percent: true },
-      { id: 'nuca', label: 'Nuca / Costas (+10%)', value: 10, percent: true },
-      { id: 'coxa', label: 'Coxa (+15%)', value: 15, percent: true },
-      { id: 'articulacao', label: 'Cotovelo / Joelho (+20%)', value: 20, percent: true },
-      { id: 'extremo', label: 'Pé / Mão / Dedo (+50%)', value: 50, percent: true },
-      { id: 'pescoco', label: 'Pescoço / Barriga (+30%)', value: 30, percent: true },
-      { id: 'intima', label: 'Parte Íntima (+60%)', value: 60, percent: true },
-    ] },
-    { id: 'cores', label: 'Quantidade de Cores', type: 'select', options: [
-      { id: 'pb', label: 'Preto e Cinza (+R$20)', value: 2000 },
-      { id: 'duas4', label: '2 a 4 cores (+R$50)', value: 5000 },
-      { id: '5mais', label: '5+ cores (+R$70)', value: 7000 },
-    ] },
-    { id: 'agulhas', label: 'Agulha / Preenchimento', type: 'select', options: [
-      { id: 'linha', label: 'Apenas linha (+R$20)', value: 2000 },
-      { id: 'medio', label: 'Linha + preenchimento médio (+R$50)', value: 5000 },
-      { id: 'muito', label: 'Muito preenchimento (+R$100)', value: 10000 },
-    ] },
-    { id: 'horas', label: 'Horas (estimadas)', type: 'number', unit: 'h', multiplier: 10000, min: 1, step: 0.5 }, // R$100/h
-    { id: 'descricao', label: 'Descrição', type: 'text', basePrice: 0 }
-  ],
+      { id: 'size', label: 'Tamanho da Tatuagem', type: 'select', options: [
+        { id: 'small', label: 'Pequena (até 5 cm) - R$100', value: 10000 },
+        { id: 'medium', label: 'Média (5 a 15 cm) - R$180', value: 18000 },
+        { id: 'large', label: 'Grande (acima de 15 cm) - R$250', value: 25000 },
+      ] },
+      { id: 'difficulty', label: 'Dificuldade', type: 'select', options: [
+        { id: 'easy', label: 'Simples (+R$20)', value: 2000 },
+        { id: 'medium', label: 'Média (+R$70)', value: 7000 },
+        { id: 'hard', label: 'Alta (+R$150)', value: 15000 },
+      ] },
+      { id: 'body_region', label: 'Região do Corpo', type: 'select', options: [
+        { id: 'arm', label: 'Braço / Canela / Panturrilha (0%)', value: 0, percent: true },
+        { id: 'nape', label: 'Nuca / Costas (+10%)', value: 10, percent: true },
+        { id: 'thigh', label: 'Coxa (+15%)', value: 15, percent: true },
+        { id: 'joint', label: 'Cotovelo / Joelho (+20%)', value: 20, percent: true },
+        { id: 'extreme', label: 'Pé / Mão / Dedo (+50%)', value: 50, percent: true },
+        { id: 'neck', label: 'Pescoço / Barriga (+30%)', value: 30, percent: true },
+        { id: 'intimate', label: 'Parte Íntima (+60%)', value: 60, percent: true },
+      ] },
+      { id: 'colors', label: 'Quantidade de Cores', type: 'select', options: [
+        { id: 'black_gray', label: 'Preto e Cinza (+R$20)', value: 2000 },
+        { id: 'two_four', label: '2 a 4 cores (+R$50)', value: 5000 },
+        { id: 'five_plus', label: '5+ cores (+R$70)', value: 7000 },
+      ] },
+      { id: 'needle_fill', label: 'Agulha / Preenchimento', type: 'select', options: [
+        { id: 'line', label: 'Apenas linha (+R$20)', value: 2000 },
+        { id: 'medium_fill', label: 'Linha + preenchimento médio (+R$50)', value: 5000 },
+        { id: 'heavy_fill', label: 'Muito preenchimento (+R$100)', value: 10000 },
+      ] },
+      { id: 'hours', label: 'Horas (estimadas)', type: 'number', unit: 'h', multiplier: 10000, min: 1, step: 0.5 }, // R$100/h
+      { id: 'description', label: 'Descrição', type: 'text', basePrice: 0 }
+    ],
   quotes: [],
   search: '',
   setSearch: (s) => set({ search: s }),
