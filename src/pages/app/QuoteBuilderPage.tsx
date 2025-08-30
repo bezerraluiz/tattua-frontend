@@ -6,7 +6,7 @@ import { getCurrentUserId } from '../../supabase/api/user';
 import { CreateQuote } from '../../api/quote.services';
 
 export const QuoteBuilderPage = () => {
-  const { fields, addQuote } = useQuoteStore();
+  const { fields } = useQuoteStore();
   const [client, setClient] = useState('');
   const [professionalName, setProfessionalName] = useState('');
   const [selections, setSelections] = useState<Record<string, string | undefined>>({});
@@ -71,19 +71,6 @@ export const QuoteBuilderPage = () => {
       push({ type: 'error', message: 'Erro ao criar orçamento.' });
       return;
     }
-
-    // Salva localmente (opcional)
-    addQuote({
-      client,
-      professional_name: professionalName,
-      items: fields.map(f => ({
-        fieldId: f.id,
-        optionId: f.type === 'select' ? selections[f.id] : undefined,
-        text: f.type === 'text' ? texts[f.id] : undefined,
-        amount: 0
-      })),
-      total,
-    });
 
     if (download) {
       const doc = new jsPDF();

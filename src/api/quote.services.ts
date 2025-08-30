@@ -44,3 +44,26 @@ export const CreateQuote = async (payload: QuotePayload): Promise<QuoteResponse>
     };
   }
 };
+
+export const GetQuotesByUserUid = async (user_uid: string): Promise<QuoteResponse> => {
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+
+  const requestOptions = {
+    method: "GET",
+    headers: myHeaders,
+    redirect: "follow" as RequestRedirect,
+  };
+
+  try {
+    const response = await fetch(`http://localhost:3333/api/v1/quotes/user?user_uid=${user_uid}`, requestOptions);
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: error instanceof Error ? error.message : 'Erro ao buscar orçamentos.',
+    };
+  }
+};
