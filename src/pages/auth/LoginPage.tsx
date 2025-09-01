@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/auth";
+import { setAccessToken } from '../../supabase/api/user';
 import { useState, useEffect } from "react";
 import {
   LoginUser,
@@ -56,6 +57,10 @@ export const LoginPage = () => {
           message: "Email ou senha inválidos. Verifique suas credenciais.",
         });
       } else {
+        // Salva o accessToken no localStorage e em memória
+        if ('data' in response && response.data?.access_token) {
+          setAccessToken(response.data.access_token);
+        }
         // Login com sucesso
         login({ email, name: "Usuário" });
         push({ type: "success", message: "Login realizado com sucesso!" });
@@ -92,7 +97,12 @@ export const LoginPage = () => {
             className="w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
           />
           <div className="text-right mt-1">
-            <Link to="/esqueci-senha" className="text-xs text-brand-400 hover:text-brand-300">Esqueceu a senha?</Link>
+            <Link
+              to="/esqueci-senha"
+              className="text-xs text-brand-400 hover:text-brand-300"
+            >
+              Esqueceu a senha?
+            </Link>
           </div>
         </div>
         <button
