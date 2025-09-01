@@ -5,7 +5,7 @@ export const SettingsPage = () => {
   const { fields, addField, updateField } = useQuoteStore();
   const [newLabel, setNewLabel] = useState('');
   const [newType, setNewType] = useState<'select' | 'text'>('select');
-  const [options, setOptions] = useState<{ label: string; value: number; percent?: boolean }[]>([]);
+  const [options, setOptions] = useState<{ label: string; value: number; }[]>([]);
   const [textBase, setTextBase] = useState<number>(0);
 
   const addOption = () => setOptions(o => [...o, { label: '', value: 0 }]);
@@ -14,7 +14,7 @@ export const SettingsPage = () => {
   const saveField = () => {
     if (!newLabel) return;
     if (newType === 'select') {
-  addField({ label: newLabel, type: 'select', options: options.map(o => ({ id: o.label.toLowerCase() || Math.random().toString(), label: o.label, value: o.value, percent: o.percent })) });
+  addField({ label: newLabel, type: 'select', options: options.map(o => ({ id: o.label.toLowerCase() || Math.random().toString(), label: o.label, value: o.value })) });
     } else {
   addField({ label: newLabel, type: 'text', basePrice: textBase });
     }
@@ -88,7 +88,7 @@ const EditableFieldCard = ({ field, onSave }: { field: any; onSave: (id: string,
       </div>
       {!editing && field.type === 'select' && (
         <ul className="mt-1 space-y-1 text-xs text-neutral-400">
-          {field.options?.map((o: any) => (<li key={o.id}>{o.label}{o.percent ? ` - ${o.value}%` : ` - R$ ${(o.value/100).toFixed(2)}`}</li>))}
+          {field.options?.map((o: any) => (<li key={o.id}>{o.label}{` - R$ ${(o.value/100).toFixed(2)}`}</li>))}
         </ul>
       )}
       {!editing && field.type === 'text' && field.basePrice && (

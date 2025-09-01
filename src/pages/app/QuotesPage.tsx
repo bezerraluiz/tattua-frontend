@@ -43,7 +43,7 @@ export const QuotesPage = () => {
       if (!def || !('options' in def)) return { value, label: value };
       const opt = def.options.find(o => o.id === value);
       if (!opt) return { value, label: value };
-      if (typeof opt.value === 'number' && !opt.percent) {
+      if (typeof opt.value === 'number') {
         return { value: `R$${(opt.value/100).toFixed(2)}`, label: opt.label };
       }
       return { value: opt.label, label: opt.label };

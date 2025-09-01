@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 
-export interface QuoteFieldSelectOption { id: string; label: string; value: number; percent?: boolean; }
+export interface QuoteFieldSelectOption { id: string; label: string; value: number; }
 export interface QuoteFieldBase { id: string; label: string; }
 export interface QuoteFieldSelect extends QuoteFieldBase { type: 'select'; options: QuoteFieldSelectOption[]; }
 export interface QuoteFieldText extends QuoteFieldBase { type: 'text'; basePrice?: number; }
@@ -39,13 +39,13 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
         { id: 'hard', label: 'Alta (+R$150)', value: 15000 },
       ] },
       { id: 'body_region', label: 'Região do Corpo', type: 'select', options: [
-        { id: 'arm', label: 'Braço / Canela / Panturrilha (0%)', value: 0, percent: true },
-        { id: 'nape', label: 'Nuca / Costas (+10%)', value: 10, percent: true },
-        { id: 'thigh', label: 'Coxa (+15%)', value: 15, percent: true },
-        { id: 'joint', label: 'Cotovelo / Joelho (+20%)', value: 20, percent: true },
-        { id: 'extreme', label: 'Pé / Mão / Dedo (+50%)', value: 50, percent: true },
-        { id: 'neck', label: 'Pescoço / Barriga (+30%)', value: 30, percent: true },
-        { id: 'intimate', label: 'Parte Íntima (+60%)', value: 60, percent: true },
+        { id: 'arm', label: 'Braço / Canela / Panturrilha (R$0)', value: 0 },
+        { id: 'nape', label: 'Nuca / Costas (+R$10)', value: 1000 },
+        { id: 'thigh', label: 'Coxa (+R$15)', value: 1500 },
+        { id: 'joint', label: 'Cotovelo / Joelho (+R$20)', value: 2000 },
+        { id: 'extreme', label: 'Pé / Mão / Dedo (+R$50)', value: 5000 },
+        { id: 'neck', label: 'Pescoço / Barriga (+R$30)', value: 3000 },
+        { id: 'intimate', label: 'Íntima - Quadril / Busto / Bumbum / Virilha (+R$60)', value: 6000 },
       ] },
       { id: 'colors', label: 'Quantidade de Cores', type: 'select', options: [
         { id: 'black_gray', label: 'Preto e Cinza (+R$20)', value: 2000 },
