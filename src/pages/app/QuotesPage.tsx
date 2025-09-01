@@ -17,20 +17,25 @@ export const QuotesPage = () => {
     const fetchQuotes = async () => {
       setLoading(true);
       const user_uid = await getCurrentUserId();
+
       if (!user_uid) {
         push({ type: 'error', message: 'Usuário não autenticado.' });
         setLoading(false);
         return;
       }
+
       const result = await GetQuotesByUserUid(user_uid);
+      
       if (result.error) {
         push({ type: 'error', message: 'Erro ao buscar orçamentos.' });
         setLoading(false);
         return;
       }
+      
       setQuotes(result.data || []);
       setLoading(false);
     };
+    
     fetchQuotes();
   }, [push]);
 
