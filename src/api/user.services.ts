@@ -1,8 +1,8 @@
 export interface LoginResponse {
   error: boolean;
   data: {
-    accessToken: string;
-    refreshToken: string;
+    access_token: string;
+    refresh_token: string;
   }
 }
 
@@ -59,12 +59,7 @@ export const LoginUser = async (payload: LoginPayload): Promise<LoginResponse | 
     return result;
   } catch (error) {
     console.error(error);
-    return {
-      error: true,
-      data: {
-        accessToken: "",
-        refreshToken: ""
-      }
+    return error instanceof Error ? { error: true, message: error.message } : { error: true, message: 'Erro ao fazer login.'
     };
   }
 };

@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, User, LayoutDashboard, Settings, FileText, CreditCard, LogOut } from 'lucide-react';
 import { useAuth } from '../../store/auth';
+import { clearAccessToken } from '../../supabase/api/user';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) => `px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-brand-600 text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800'}`;
 
@@ -9,7 +10,13 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const hideAuthButtons = ['/esqueci-senha', '/resetar-senha'].includes(location.pathname);
-  const handleLogout = () => { logout(); navigate('/'); };
+  
+  const handleLogout = () => {
+    clearAccessToken();
+    logout(); 
+    navigate('/'); 
+  };
+  
   return (
     <nav className="w-full border-b border-neutral-800 bg-neutral-900/80 backdrop-blur sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
