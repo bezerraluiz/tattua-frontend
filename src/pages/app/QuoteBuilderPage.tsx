@@ -4,6 +4,8 @@ import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUserId } from '../../supabase/api/user';
 import { CreateQuote } from '../../api/quote.services';
+import { handleAuthError } from '../../utils/handleAuthError';
+import { useToast } from '../../store/toast';
 
 export const QuoteBuilderPage = () => {
   const { fields } = useQuoteStore();
@@ -13,6 +15,7 @@ export const QuoteBuilderPage = () => {
   const [texts, setTexts] = useState<Record<string, string>>({});
   const [numbers, setNumbers] = useState<Record<string, number>>({});
   const navigate = useNavigate();
+  const { push } = useToast();
 
   const calculateTotal = () => {
     let total = 0;
@@ -25,7 +28,7 @@ export const QuoteBuilderPage = () => {
         if (!sel) continue;
         const opt = f.options?.find(o => o.id === sel);
         if (!opt) continue;
-        if (opt.percent) {
+        if ((opt as any).percent) {
           percent += opt.value; // valor em %
         } else {
           additions += opt.value;
@@ -44,80 +47,88 @@ export const QuoteBuilderPage = () => {
   const total = calculateTotal();
 
   const save = async (download?: boolean) => {
-    const user_uid = await getCurrentUserId();
-    if (!user_uid) {
-      alert('Usuário não autenticado.');
-      return;
-    }
-
-    // Monta o payload para o backend
-    const payload = {
-      client_name: client,
-      professional_name: professionalName,
-      tattoo_size: selections['tamanho'] || '',
-      difficulty: selections['dificuldade'] || '',
-      body_region: selections['regiao'] || '',
-      colors_quantity: selections['cores'] || '',
-      needle_fill: selections['agulhas'] || '',
-      estimated_hours: numbers['horas'] || 0,
-      description: texts['descricao'] || '',
-      total,
-      custom_fields: {}, // Adapte se quiser salvar extras
-      user_uid: user_uid,
-    };
-
-    const result = await CreateQuote(payload);
-    if (result.error) {
-      push({ type: 'error', message: 'Erro ao criar orçamento.' });
-      return;
-    }
-
-    if (download) {
-      const doc = new jsPDF();
-      const date = new Date();
-      doc.setFontSize(16);
-      doc.text('ORÇAMENTO', 105, 15, { align: 'center' });
-      doc.setFontSize(11);
-      doc.text(`Cliente: ${client}`, 14, 30);
-      doc.text(`Data: ${date.toLocaleDateString('pt-BR')}`, 14, 36);
-      // Tabela
-      let y = 50;
-      doc.setFillColor(60,60,60);
-      doc.setTextColor(255);
-      doc.rect(14, y-6, 182, 8, 'F');
-      doc.text('Item', 20, y-1);
-      doc.text('Descrição', 80, y-1);
-      doc.text('Valor (R$)', 170, y-1, { align: 'right' });
-      doc.setTextColor(0);
-      y += 4;
-      doc.setFontSize(10);
-      for (const f of fields) {
-        let desc = '';
-        let val = 0;
-        if (f.type === 'select') {
-          const opt = f.options?.find(o => o.id === selections[f.id]);
-          if (!opt) continue;
-          desc = opt.label; val = opt.percent ? 0 : opt.value;
-        } else if (f.type === 'text') {
-          desc = texts[f.id] || '-'; val = f.basePrice || 0;
-        } else if (f.type === 'number') {
-          const num = numbers[f.id] || 0;
-          desc = `${num} ${f.unit}`; val = num * f.multiplier;
-        }
-        doc.text(f.label, 20, y);
-        doc.text(desc, 80, y, { align: 'center' });
-        doc.text((val/100).toFixed(2), 170, y, { align: 'right' });
-        y += 7;
-        if (y > 270) { doc.addPage(); y = 20; }
+    try {
+      const user_uid = await getCurrentUserId();
+      if (!user_uid) {
+        push({ type: 'error', message: 'Usuário não autenticado.' });
+        return;
       }
-      doc.setFontSize(12);
-      doc.setDrawColor(60,60,60);
-      doc.line(14, y+2, 196, y+2);
-      doc.setFontSize(14);
-      doc.text(`TOTAL: R$ ${(total/100).toFixed(2)}`, 196, y+12, { align: 'right' });
-      doc.save(`orcamento-${client}.pdf`);
+
+      // Monta o payload para o backend
+      const payload = {
+        client_name: client,
+        professional_name: professionalName,
+        tattoo_size: selections['tamanho'] || '',
+        difficulty: selections['dificuldade'] || '',
+        body_region: selections['regiao'] || '',
+        colors_quantity: selections['cores'] || '',
+        needle_fill: selections['agulhas'] || '',
+        estimated_hours: numbers['horas'] || 0,
+        description: texts['descricao'] || '',
+        total,
+        custom_fields: {}, // Adapte se quiser salvar extras
+        user_uid: user_uid,
+      };
+
+      const result = await CreateQuote(payload);
+      if (result.error) {
+        if (!handleAuthError(result.error, push)) {
+          push({ type: 'error', message: 'Erro ao criar orçamento.' });
+        }
+        return;
+      }
+
+      if (download) {
+        const doc = new jsPDF();
+        const date = new Date();
+        doc.setFontSize(16);
+        doc.text('ORÇAMENTO', 105, 15, { align: 'center' });
+        doc.setFontSize(11);
+        doc.text(`Cliente: ${client}`, 14, 30);
+        doc.text(`Data: ${date.toLocaleDateString('pt-BR')}`, 14, 36);
+        // Tabela
+        let y = 50;
+        doc.setFillColor(60,60,60);
+        doc.setTextColor(255);
+        doc.rect(14, y-6, 182, 8, 'F');
+        doc.text('Item', 20, y-1);
+        doc.text('Descrição', 80, y-1);
+        doc.text('Valor (R$)', 170, y-1, { align: 'right' });
+        doc.setTextColor(0);
+        y += 4;
+        doc.setFontSize(10);
+        for (const f of fields) {
+          let desc = '';
+          let val = 0;
+          if (f.type === 'select') {
+            const opt = f.options?.find(o => o.id === selections[f.id]);
+            if (!opt) continue;
+            desc = opt.label; val = (opt as any).percent ? 0 : opt.value;
+          } else if (f.type === 'text') {
+            desc = texts[f.id] || '-'; val = f.basePrice || 0;
+          } else if (f.type === 'number') {
+            const num = numbers[f.id] || 0;
+            desc = `${num} ${f.unit}`; val = num * f.multiplier;
+          }
+          doc.text(f.label, 20, y);
+          doc.text(desc, 80, y, { align: 'center' });
+          doc.text((val/100).toFixed(2), 170, y, { align: 'right' });
+          y += 7;
+          if (y > 270) { doc.addPage(); y = 20; }
+        }
+        doc.setFontSize(12);
+        doc.setDrawColor(60,60,60);
+        doc.line(14, y+2, 196, y+2);
+        doc.setFontSize(14);
+        doc.text(`TOTAL: R$ ${(total/100).toFixed(2)}`, 196, y+12, { align: 'right' });
+        doc.save(`orcamento-${client}.pdf`);
+      }
+      navigate('/app/orcamentos');
+    } catch (e: any) {
+      if (!handleAuthError(e, push)) {
+        push({ type: 'error', message: 'Erro ao criar orçamento.' });
+      }
     }
-    navigate('/app/orcamentos');
   };
 
   return (
@@ -169,7 +180,3 @@ export const QuoteBuilderPage = () => {
     </div>
   );
 };
-function push(arg0: { type: string; message: string; }) {
-  throw new Error('Function not implemented.');
-}
-

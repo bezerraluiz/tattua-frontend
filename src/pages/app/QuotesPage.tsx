@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { GetQuotesByUserUid } from '../../api/quote.services';
 import { getCurrentUserId } from '../../supabase/api/user';
+import { handleAuthError } from '../../utils/handleAuthError';
 import { useToast } from '../../store/toast';
 import { generateQuotePDF } from '../../utils/generateQuotePDF';
 import { useQuoteStore } from '../../store/quotes';
@@ -12,24 +13,35 @@ export const QuotesPage = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const { push } = useToast();
+  // Adapter para garantir tipos corretos para handleAuthError
+  const pushToast = (msg: { type: 'error' | 'success' | 'info'; message: string }) => push(msg);
 
   useEffect(() => {
     const fetchQuotes = async () => {
       setLoading(true);
-      const user_uid = await getCurrentUserId();
-      if (!user_uid) {
-        push({ type: 'error', message: 'Usuário não autenticado.' });
+      try {
+        const user_uid = await getCurrentUserId();
+        if (!user_uid) {
+          pushToast({ type: 'error', message: 'Usuário não autenticado.' });
+          setLoading(false);
+          return;
+        }
+        const result = await GetQuotesByUserUid(user_uid);
+        if (result.error) {
+          if (!handleAuthError(result.error, pushToast)) {
+            pushToast({ type: 'error', message: 'Erro ao buscar orçamentos.' });
+          }
+          setLoading(false);
+          return;
+        }
+        setQuotes(result.data || []);
+      } catch (e: any) {
+        if (!handleAuthError(e, pushToast)) {
+          pushToast({ type: 'error', message: 'Erro ao buscar orçamentos.' });
+        }
+      } finally {
         setLoading(false);
-        return;
       }
-      const result = await GetQuotesByUserUid(user_uid);
-      if (result.error) {
-        push({ type: 'error', message: 'Erro ao buscar orçamentos.' });
-        setLoading(false);
-        return;
-      }
-      setQuotes(result.data || []);
-      setLoading(false);
     };
     fetchQuotes();
   }, [push]);

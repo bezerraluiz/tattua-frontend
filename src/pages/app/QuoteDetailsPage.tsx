@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GetQuotesByUserUid } from "../../api/quote.services";
 import { getCurrentUserId } from "../../supabase/api/user";
-
-
+import { handleAuthError } from '../../utils/handleAuthError';
 import { useToast } from "../../store/toast";
 
 
@@ -30,7 +29,9 @@ export default function QuoteDetailsPage() {
         if (!userId) throw new Error("Usuário não autenticado");
         const result = await GetQuotesByUserUid(userId);
         if (result.error) {
-          push({ type: 'error', message: result.message || 'Erro ao buscar orçamentos.' });
+          if (!handleAuthError(result.error, push)) {
+            push({ type: 'error', message: result.message || 'Erro ao buscar orçamentos.' });
+          }
           navigate("/app/orcamentos");
           return;
         }
@@ -43,7 +44,9 @@ export default function QuoteDetailsPage() {
           setQuote(found);
         }
       } catch (e: any) {
-        push({ type: "error", message: e.message || "Erro ao buscar orçamento" });
+        if (!handleAuthError(e, push)) {
+          push({ type: "error", message: e.message || "Erro ao buscar orçamento" });
+        }
         navigate("/app/orcamentos");
       } finally {
         setLoading(false);
@@ -64,7 +67,7 @@ export default function QuoteDetailsPage() {
     const opt = def.options.find(o => o.id === value);
     if (!opt) return { value, label: value };
     // Exibe valor monetário se existir
-    if (typeof opt.value === 'number' && !opt.percent) {
+    if (typeof opt.value === 'number' && !(opt as any).percent) {
       return { value: `R$${(opt.value/100).toFixed(2)}`, label: opt.label };
     }
     // Exibe label se for percent

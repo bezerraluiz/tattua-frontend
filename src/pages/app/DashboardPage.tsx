@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuoteStore } from '../../store/quotes';
 import { FileText, Plus, Settings, TrendingUp } from 'lucide-react';
 import { useMemo, useEffect, useRef } from 'react';
+// import { handleAuthError } from '../../utils/handleAuthError'; // Descomente se usar getCurrentUserId
 
 export const DashboardPage = () => {
   const { quotes, fields } = useQuoteStore();

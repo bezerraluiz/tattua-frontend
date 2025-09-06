@@ -30,6 +30,18 @@ export async function getCurrentUserId() {
   const { data, error } = await supabase.auth.getUser(ACCESS_TOKEN);
   if (error) {
     console.error('Erro ao obter usuário:', error);
+    // Verifica se é erro de token expirado e faz logout automático
+    const msg = error?.message || String(error);
+    if (msg?.toLowerCase().includes('token is expired') || msg?.toLowerCase().includes('invalid jwt')) {
+      clearAccessToken();
+      try {
+        // Importar dinamicamente para evitar dependência circular
+        const { useAuth } = await import('../../store/auth');
+        useAuth.getState().logout();
+      } catch {}
+      // Redireciona para login
+      setTimeout(() => { window.location.href = '/login'; }, 100);
+    }
     return null;
   }
   return data.user?.id || null;
