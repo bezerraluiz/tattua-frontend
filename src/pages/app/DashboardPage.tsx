@@ -38,18 +38,14 @@ export const DashboardPage = () => {
         return;
       }
 
-      console.log('Buscando quotes para usuário:', userId); // Debug log
-
       const result = await GetQuotesByUserUid(userId);
       if (result.error) {
-        console.error('Erro ao buscar quotes:', result); // Debug log
         if (!handleAuthError(result, push)) {
           push({ type: 'error', message: 'Erro ao carregar orçamentos.' });
         }
         return;
       }
 
-      console.log('Quotes recebidos:', result.data); // Debug log
       // Assuming the API returns quotes in result.data
       const quotes = result.data || [];
       // Sort quotes by creation date (newest first)
@@ -58,7 +54,6 @@ export const DashboardPage = () => {
       );
       setUserQuotes(sortedQuotes);
     } catch (error: any) {
-      console.error('Erro na requisição:', error); // Debug log
       if (!handleAuthError(error, push)) {
         push({ type: 'error', message: 'Erro ao carregar orçamentos.' });
       }
@@ -195,8 +190,8 @@ export const DashboardPage = () => {
         <StatCard label="Campos" value={fields.length} sub="Campos configurados" />
         <StatCard 
           label="Receita (mês)" 
-          value={loading ? '...' : `R$ ${(stats.monthlyRevenue/100).toFixed(2)}`} 
-          sub={loading ? 'Carregando...' : stats.inMonthCount > 0 ? now.toLocaleDateString('pt-BR', { month: 'long' }) : `Total: R$ ${(stats.totalRevenue/100).toFixed(2)}`} 
+          value={loading ? '...' : stats.inMonthCount > 0 ? `R$ ${(stats.monthlyRevenue/100).toFixed(2)}` : `R$ ${(stats.totalRevenue/100).toFixed(2)}`} 
+          sub={loading ? 'Carregando...' : stats.inMonthCount > 0 ? now.toLocaleDateString('pt-BR', { month: 'long' }) : 'Total geral'} 
           icon={<TrendingUp className="w-5 h-5"/>} 
         />
         <StatCard 
