@@ -1,3 +1,5 @@
+import { apiRequestJson } from '../utils/apiRequest';
+
 export interface LoginResponse {
   error: boolean;
   data: {
@@ -11,6 +13,56 @@ export interface RegisterResponse {
   data: {
     id: string;
   }
+}
+
+export interface UserResponse {
+  error: boolean;
+  data?: {
+    id: number;
+    uid: string;
+    studio_name: string;
+    email: string;
+    tax_id: string;
+    telephone?: string;
+    country?: string;
+    street?: string;
+    number?: string;
+    complement?: string;
+    city?: string;
+    state?: string;
+    zip_code?: string;
+  };
+  message?: string;
+}
+
+export interface UserAddressResponse {
+  error: boolean;
+  data?: {
+    id: number;
+    user_id: number;
+    country: string;
+    street: string;
+    number: string;
+    complement?: string;
+    city: string;
+    state: string;
+    zip_code: string;
+    created_at: string;
+    updated_at: string;
+  } | Array<{
+    id: number;
+    user_id: number;
+    country: string;
+    street: string;
+    number: string;
+    complement?: string;
+    city: string;
+    state: string;
+    zip_code: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+  message?: string;
 }
 
 export interface ErrorResponse {
@@ -28,6 +80,7 @@ export interface RegisterPayload {
   email: string;
   tax_id: string;
   password: string;
+  telephone?: string;
   country: string;
   street: string;
   number: string;
@@ -59,8 +112,7 @@ export const LoginUser = async (payload: LoginPayload): Promise<LoginResponse | 
     return result;
   } catch (error) {
     console.error(error);
-    return error instanceof Error ? { error: true, message: error.message } : { error: true, message: 'Erro ao fazer login.'
-    };
+    return error instanceof Error ? { error: true, message: error.message } : { error: true, message: 'Erro ao fazer login.' };
   }
 };
 
@@ -78,7 +130,7 @@ export const RegisterUser = async (payload: RegisterPayload): Promise<RegisterRe
   };
 
   try {
-    const response = await fetch("http://localhost:3333/api/v1/users", requestOptions);
+    const response = await fetch("http://localhost:3333/api/v1/users/register", requestOptions);
     const result = await response.json();
     return result;
   } catch (error) {
@@ -90,3 +142,36 @@ export const RegisterUser = async (payload: RegisterPayload): Promise<RegisterRe
   }
 };
 
+export const GetUser = async (user_uid: string): Promise<UserResponse> => {
+  try {
+    const result = await apiRequestJson<UserResponse>({
+      url: `http://localhost:3333/api/v1/users?user_uid=${user_uid}`,
+      method: 'GET'
+    });
+    
+    return result;
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: error instanceof Error ? error.message : 'Erro ao buscar perfil do usuário.',
+    };
+  }
+};
+
+export const GetUserAddress = async (user_id: number): Promise<UserAddressResponse> => {
+  try {
+    const result = await apiRequestJson<UserAddressResponse>({
+      url: `http://localhost:3333/api/v1/addresses/user?user_id=${user_id}`,
+      method: 'GET'
+    });
+    
+    return result;
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: error instanceof Error ? error.message : 'Erro ao buscar endereço do usuário.',
+    };
+  }
+};

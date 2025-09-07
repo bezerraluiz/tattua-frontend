@@ -1,12 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
-
-import { useAuth } from '../../store/auth';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../store/auth';
 import { useProfile } from '../../store/profile';
 import { useToast } from '../../store/toast';
 
 import { RegisterUser, RegisterPayload, LoginResponse, type ErrorResponse, type RegisterResponse } from '../../api/user.services';
-import { maskCEP, maskCPF, maskCNPJ, maskTaxId, isValidCPF, isValidCNPJ, validTax } from '../../utils/validation';
+import { maskCEP, maskCPF, maskCNPJ, maskTaxId, isValidCPF, isValidCNPJ, validTax, maskPhone, isValidPhone } from '../../utils/validation';
 
 export const RegisterPage = () => {
   const { login } = useAuth();
@@ -15,6 +14,7 @@ export const RegisterPage = () => {
   const nav = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [telephone, setTelephone] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [cep, setCep] = useState('');
@@ -52,7 +52,8 @@ export const RegisterPage = () => {
   }, [cep]);
 
   const passwordsMatch = password && password === password2;
-  const canSubmit = email && passwordsMatch && password.length >= 4 && cep.replace(/\D/g,'').length === 8 && street && number && city && uf && validTax(taxId);
+  const phoneValid = !telephone || isValidPhone(telephone); // Telefone é opcional, mas se preenchido deve ser válido
+  const canSubmit = email && passwordsMatch && password.length >= 4 && cep.replace(/\D/g,'').length === 8 && street && number && city && uf && validTax(taxId) && phoneValid;
   const [loading, setLoading] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +68,7 @@ export const RegisterPage = () => {
       email,
       tax_id: taxId,
       password,
+      telephone: telephone || undefined,
       country: 'Brasil',
       street,
       number,
@@ -80,18 +82,10 @@ export const RegisterPage = () => {
       if (response.error) {
         push({ type: 'error', message: 'Erro ao criar conta. Verifique os dados.' });
       } else {
-        updateUser({ studio_name: name, email, tax_id: taxId });
-        updateAddress({
-          country: 'Brasil',
-          street,
-          number,
-          complement,
-          city,
-          state: uf,
-          zip_code: cep.replace(/\D/g,'')
-        });
-  push({ type: 'success', message: 'Conta criada! Verifique seu e-mail para ativar.' });
-  nav('/aguarde-verificacao', { state: { email } });
+        // Dados sensíveis não são salvos no storage por segurança
+        // Usuário será redirecionado e dados serão buscados da API quando necessário
+        push({ type: 'success', message: 'Conta criada! Verifique seu e-mail para ativar.' });
+        nav('/aguarde-verificacao', { state: { email } });
       }
     } catch (err) {
       push({ type: 'error', message: 'Erro de conexão. Tente novamente.' });
@@ -115,6 +109,16 @@ export const RegisterPage = () => {
         <div>
           <label className="block text-sm mb-1">Email</label>
           <input value={email} onChange={e => setEmail(e.target.value)} type="email" required className="w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600" />
+        </div>
+        <div>
+          <label className="block text-sm mb-1">Telefone (opcional)</label>
+          <input 
+            value={telephone} 
+            onChange={e => setTelephone(maskPhone(e.target.value))} 
+            placeholder="(11) 91234-5678" 
+            className={`w-full bg-neutral-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${telephone && !phoneValid ? 'focus:ring-red-600 ring-1 ring-red-600' : 'focus:ring-brand-600'}`} 
+          />
+          {telephone && !phoneValid && <p className="text-xs text-red-500 mt-1">Telefone inválido.</p>}
         </div>
         <div>
           <label className="block text-sm mb-1">Senha</label>

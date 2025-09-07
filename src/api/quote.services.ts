@@ -1,3 +1,5 @@
+import { apiRequestJson } from '../utils/apiRequest';
+
 export interface QuotePayload {
   client_name: string;
   professional_name: string;
@@ -20,29 +22,12 @@ export interface QuoteResponse {
 }
 
 export const CreateQuote = async (payload: QuotePayload): Promise<QuoteResponse> => {
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-
-  const raw = JSON.stringify(payload);
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-    redirect: "follow" as RequestRedirect,
-  };
-
   try {
-    const response = await fetch("http://localhost:3333/api/v1/quotes", requestOptions);
-    const result = await response.json();
-    
-    // Verifica se houve erro de autenticação
-    if (!response.ok && (response.status === 401 || response.status === 403)) {
-      return {
-        error: true,
-        message: 'invalid JWT: token is expired', // Simula mensagem que será detectada pelo handleAuthError
-      };
-    }
+    const result = await apiRequestJson<QuoteResponse>({
+      url: 'http://localhost:3333/api/v1/quotes',
+      method: 'POST',
+      body: payload
+    });
     
     return result;
   } catch (error) {
@@ -55,26 +40,11 @@ export const CreateQuote = async (payload: QuotePayload): Promise<QuoteResponse>
 };
 
 export const GetQuotesByUserUid = async (user_uid: string): Promise<QuoteResponse> => {
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-
-  const requestOptions = {
-    method: "GET",
-    headers: myHeaders,
-    redirect: "follow" as RequestRedirect,
-  };
-
   try {
-    const response = await fetch(`http://localhost:3333/api/v1/quotes/user?user_uid=${user_uid}`, requestOptions);
-    const result = await response.json();
-    
-    // Verifica se houve erro de autenticação
-    if (!response.ok && (response.status === 401 || response.status === 403)) {
-      return {
-        error: true,
-        message: 'invalid JWT: token is expired', // Simula mensagem que será detectada pelo handleAuthError
-      };
-    }
+    const result = await apiRequestJson<QuoteResponse>({
+      url: `http://localhost:3333/api/v1/quotes/user?user_uid=${user_uid}`,
+      method: 'GET'
+    });
     
     return result;
   } catch (error) {

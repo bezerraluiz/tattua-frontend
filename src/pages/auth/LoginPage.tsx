@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/auth";
-import { setAccessToken } from '../../supabase/api/user';
+import { setAccessToken, setRefreshToken } from '../../supabase/api/user';
 import { useState, useEffect } from "react";
 import {
   LoginUser,
@@ -57,9 +57,12 @@ export const LoginPage = () => {
           message: "Email ou senha inválidos. Verifique suas credenciais.",
         });
       } else {
-        // Salva o accessToken no localStorage e em memória
+        // Salva os tokens no localStorage e em memória
         if ('data' in response && response.data?.access_token) {
           setAccessToken(response.data.access_token);
+        }
+        if ('data' in response && response.data?.refresh_token) {
+          setRefreshToken(response.data.refresh_token);
         }
         // Login com sucesso
         login({ email, name: "Usuário" });

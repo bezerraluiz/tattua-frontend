@@ -21,6 +21,22 @@ export function maskTaxId(v: string): string {
   return v.replace(/\D/g,'').length <= 11 ? maskCPF(v) : maskCNPJ(v);
 }
 
+export function maskPhone(v: string): string {
+  const digits = v.replace(/\D/g,'');
+  if (digits.length <= 10) {
+    // Telefone fixo: (11) 1234-5678
+    return digits.slice(0,10).replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2');
+  } else {
+    // Celular: (11) 91234-5678
+    return digits.slice(0,11).replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
+  }
+}
+
+export function isValidPhone(phone: string): boolean {
+  const digits = phone.replace(/\D/g,'');
+  return digits.length >= 10 && digits.length <= 11;
+}
+
 export function isValidCPF(cpf: string): boolean {
   cpf = cpf.replace(/\D/g,'');
   if (cpf.length !== 11 || /(\d)\1{10}/.test(cpf)) return false;

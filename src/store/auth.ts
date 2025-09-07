@@ -24,7 +24,13 @@ export const useAuth = create<AuthState>((set) => ({
     set({ user });
   },
   logout: () => {
+    // Remover dados de autenticação
     localStorage.removeItem('tattua:user');
+    
+    // Limpar quaisquer dados sensíveis que possam ter sido salvos anteriormente
+    localStorage.removeItem('tattua:profile:user');
+    localStorage.removeItem('tattua:profile:address');
+    
     set({ user: null });
   }
 }));
