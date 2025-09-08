@@ -175,3 +175,67 @@ export const GetUserAddress = async (user_id: number): Promise<UserAddressRespon
     };
   }
 };
+
+export interface UpdateUserPayload {
+  password?: string;
+  studio_name?: string;
+  email?: string;
+  tax_id?: string;
+  telephone?: string;
+}
+
+export interface UpdateAddressPayload {
+  user_id: number; // Será enviado via URL params
+  country?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+}
+
+export const UpdateUser = async (uid: string, payload: UpdateUserPayload): Promise<UserResponse> => {
+  try {
+    const result = await apiRequestJson<UserResponse>({
+      url: `http://localhost:3333/api/v1/users/update?uid=${uid}`,
+      method: 'PATCH',
+      body: payload
+    });
+    
+    return result;
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: error instanceof Error ? error.message : 'Erro ao atualizar usuário.',
+    };
+  }
+};
+
+export const UpdateUserAddress = async (payload: UpdateAddressPayload): Promise<UserAddressResponse> => {
+  try {
+    console.log('UpdateUserAddress - payload recebido:', payload);
+    console.log('UpdateUserAddress - user_id original:', payload.user_id, 'tipo:', typeof payload.user_id);
+    
+    // Separar user_id para enviar via params, e o resto via body
+    const { user_id, ...bodyPayload } = payload;
+
+    console.log('UpdateUserAddress - user_id para params:', user_id);
+    console.log('UpdateUserAddress - body payload:', bodyPayload);
+
+    const result = await apiRequestJson<UserAddressResponse>({
+      url: `http://localhost:3333/api/v1/addresses/update?user_id=${user_id}`,
+      method: 'PATCH',
+      body: bodyPayload
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('UpdateUserAddress - erro:', error);
+    return {
+      error: true,
+      message: error instanceof Error ? error.message : 'Erro ao atualizar endereço.',
+    };
+  }
+};

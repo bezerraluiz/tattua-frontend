@@ -3,14 +3,14 @@ import { useProfile } from '../../store/profile';
 import { useToast } from '../../store/toast';
 import { maskPhone, isValidPhone } from '../../utils/validation';
 import { getCurrentUserId } from '../../supabase/api/user';
-import { GetUser, GetUserAddress } from '../../api/user.services';
+import { GetUser, GetUserAddress, UpdateUser, UpdateUserAddress } from '../../api/user.services';
 import { handleAuthError } from '../../utils/handleAuthError';
 
 export const ProfilePage = () => {
   const { user, address, updateUser, updateAddress } = useProfile();
   const { push } = useToast();
   const [userForm, setUserForm] = useState(user || {
-    user_id: 1,
+    user_id: 0,
     studio_name: '',
     email: '',
     tax_id: '',
@@ -26,6 +26,14 @@ export const ProfilePage = () => {
       }));
     }
   }, [user?.telephone]);
+
+  // Sincronizar userForm com o store do profile sempre que o usuário for atualizado
+  useEffect(() => {
+    if (user && user.user_id > 0) {
+      console.log('Atualizando userForm com dados do store:', user);
+      setUserForm(user);
+    }
+  }, [user]);
   const [addrForm, setAddrForm] = useState(address || {
     country: 'Brasil',
     street: '',
@@ -79,6 +87,8 @@ export const ProfilePage = () => {
           // A API retorna os dados diretamente no objeto data, não em array
           const userData_api = Array.isArray(result.data) ? result.data[0] : result.data;
           
+          console.log('Dados do usuário recebidos da API:', userData_api);
+          
           // Atualizar os dados do usuário
           const userData = {
             user_id: userData_api.id,
@@ -87,6 +97,8 @@ export const ProfilePage = () => {
             tax_id: userData_api.tax_id,
             telephone: userData_api.telephone ? maskPhone(userData_api.telephone) : undefined
           };
+
+          console.log('Dados do usuário mapeados:', userData);
 
           // Atualizar formulário do usuário
           setUserForm(userData);
@@ -243,36 +255,31 @@ export const ProfilePage = () => {
       }
 
       const payload = {
-        user_uid: userId,
         studio_name: userForm.studio_name,
         email: userForm.email,
         tax_id: maskTaxId(userForm.tax_id),
         telephone: userForm.telephone ? maskPhone(userForm.telephone) : undefined,
-        country: addrForm.country,
-        street: addrForm.street,
-        number: addrForm.number,
-        complement: addrForm.complement,
-        city: addrForm.city,
-        state: addrForm.state,
-        zip_code: addrForm.zip_code
       };
 
-      // TODO: Implementar função de update quando a API estiver disponível
-      /*
-      const result = await UpdateUserProfile(payload);
+      const result = await UpdateUser(userId, payload);
       if (result.error) {
         const handledAuth = await handleAuthError(result, push);
         if (!handledAuth) {
-          push({ type: 'error', message: 'Erro ao salvar dados do usuário.' });
+          push({ type: 'error', message: result.message || 'Erro ao salvar dados do usuário.' });
         }
         return;
       }
-      */
 
-      // Dados sensíveis não são salvos no storage por segurança
-      // Apenas atualizar o timestamp de salvamento
+      // Atualizar o store com os novos dados
+      updateUser({
+        user_id: result.data!.id,
+        studio_name: result.data!.studio_name,
+        email: result.data!.email,
+        tax_id: result.data!.tax_id,
+        telephone: result.data!.telephone
+      });
       setUserSavedAt(new Date());
-      push({ type: 'success', message: 'Dados do usuário visualizados (função de salvar não implementada).' });
+      push({ type: 'success', message: 'Dados do usuário salvos com sucesso!' });
     } catch (error: any) {
       const handledAuth = await handleAuthError(error, push);
       if (!handledAuth) {
@@ -285,18 +292,16 @@ export const ProfilePage = () => {
   const saveAddr = async () => {
     setSavingAddr(true);
     try {
-      const userId = await getCurrentUserId();
-      if (!userId) {
-        push({ type: 'error', message: 'Usuário não autenticado.' });
+      // Precisamos buscar o user_id do banco de dados, não o UID do Supabase
+      if (!user?.user_id || user.user_id === 0) {
+        push({ type: 'error', message: 'Dados do usuário não carregados. Tente recarregar a página.' });
         return;
       }
 
+      console.log('Salvando endereço para user_id:', user.user_id, 'tipo:', typeof user.user_id);
+
       const payload = {
-        user_uid: userId,
-        studio_name: userForm.studio_name,
-        email: userForm.email,
-        tax_id: userForm.tax_id,
-        telephone: userForm.telephone,
+        user_id: user.user_id,
         country: addrForm.country,
         street: addrForm.street,
         number: addrForm.number,
@@ -306,23 +311,32 @@ export const ProfilePage = () => {
         zip_code: addrForm.zip_code
       };
 
-      // TODO: Implementar função de update de endereço quando a API estiver disponível
-      /*
-      const result = await UpdateUserProfile(payload);
+      console.log('Payload do endereço:', payload, 'user_id tipo:', typeof payload.user_id);
+
+      const result = await UpdateUserAddress(payload);
       if (result.error) {
         const handledAuth = await handleAuthError(result, push);
         if (!handledAuth) {
-          push({ type: 'error', message: 'Erro ao salvar endereço.' });
+          push({ type: 'error', message: result.message || 'Erro ao salvar endereço.' });
         }
         return;
       }
-      */
 
-      // Dados sensíveis não são salvos no storage por segurança
-      // Apenas atualizar o timestamp de salvamento
+      // Atualizar o store com os novos dados
+      const addressData = Array.isArray(result.data) ? result.data[0] : result.data!;
+      updateAddress({
+        country: addressData.country,
+        street: addressData.street,
+        number: addressData.number,
+        complement: addressData.complement,
+        city: addressData.city,
+        state: addressData.state,
+        zip_code: addressData.zip_code
+      });
       setAddrSavedAt(new Date());
-      push({ type: 'success', message: 'Endereço visualizado (função de salvar não implementada).' });
+      push({ type: 'success', message: 'Endereço salvo com sucesso!' });
     } catch (error: any) {
+      console.error('Erro ao salvar endereço:', error);
       const handledAuth = await handleAuthError(error, push);
       if (!handledAuth) {
         push({ type: 'error', message: 'Erro ao salvar endereço.' });
