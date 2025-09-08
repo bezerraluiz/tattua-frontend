@@ -215,14 +215,8 @@ export const UpdateUser = async (uid: string, payload: UpdateUserPayload): Promi
 
 export const UpdateUserAddress = async (payload: UpdateAddressPayload): Promise<UserAddressResponse> => {
   try {
-    console.log('UpdateUserAddress - payload recebido:', payload);
-    console.log('UpdateUserAddress - user_id original:', payload.user_id, 'tipo:', typeof payload.user_id);
-    
     // Separar user_id para enviar via params, e o resto via body
     const { user_id, ...bodyPayload } = payload;
-
-    console.log('UpdateUserAddress - user_id para params:', user_id);
-    console.log('UpdateUserAddress - body payload:', bodyPayload);
 
     const result = await apiRequestJson<UserAddressResponse>({
       url: `http://localhost:3333/api/v1/addresses/update?user_id=${user_id}`,
@@ -232,7 +226,7 @@ export const UpdateUserAddress = async (payload: UpdateAddressPayload): Promise<
     
     return result;
   } catch (error) {
-    console.error('UpdateUserAddress - erro:', error);
+    console.error(error);
     return {
       error: true,
       message: error instanceof Error ? error.message : 'Erro ao atualizar endereço.',

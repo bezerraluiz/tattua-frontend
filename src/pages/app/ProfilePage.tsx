@@ -30,7 +30,6 @@ export const ProfilePage = () => {
   // Sincronizar userForm com o store do profile sempre que o usuário for atualizado
   useEffect(() => {
     if (user && user.user_id > 0) {
-      console.log('Atualizando userForm com dados do store:', user);
       setUserForm(user);
     }
   }, [user]);
@@ -87,8 +86,6 @@ export const ProfilePage = () => {
           // A API retorna os dados diretamente no objeto data, não em array
           const userData_api = Array.isArray(result.data) ? result.data[0] : result.data;
           
-          console.log('Dados do usuário recebidos da API:', userData_api);
-          
           // Atualizar os dados do usuário
           const userData = {
             user_id: userData_api.id,
@@ -97,8 +94,6 @@ export const ProfilePage = () => {
             tax_id: userData_api.tax_id,
             telephone: userData_api.telephone ? maskPhone(userData_api.telephone) : undefined
           };
-
-          console.log('Dados do usuário mapeados:', userData);
 
           // Atualizar formulário do usuário
           setUserForm(userData);
@@ -298,8 +293,6 @@ export const ProfilePage = () => {
         return;
       }
 
-      console.log('Salvando endereço para user_id:', user.user_id, 'tipo:', typeof user.user_id);
-
       const payload = {
         user_id: user.user_id,
         country: addrForm.country,
@@ -310,8 +303,6 @@ export const ProfilePage = () => {
         state: addrForm.state,
         zip_code: addrForm.zip_code
       };
-
-      console.log('Payload do endereço:', payload, 'user_id tipo:', typeof payload.user_id);
 
       const result = await UpdateUserAddress(payload);
       if (result.error) {
@@ -336,7 +327,6 @@ export const ProfilePage = () => {
       setAddrSavedAt(new Date());
       push({ type: 'success', message: 'Endereço salvo com sucesso!' });
     } catch (error: any) {
-      console.error('Erro ao salvar endereço:', error);
       const handledAuth = await handleAuthError(error, push);
       if (!handledAuth) {
         push({ type: 'error', message: 'Erro ao salvar endereço.' });
